@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sistema de Pátio</title>
+<meta name="application-name" content="Sistema de Pátio">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sistema de Pátio">
+<meta name="theme-color" content="#070a0f">
+<meta name="description" content="Sistema de controle de fila do pátio">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070a0f;--sur:#0d1117;--sur2:#111827;--bor:#1f2937;
+  --amber:#f59e0b;--green:#22c55e;--blue:#3b82f6;--red:#ef4444;
+  --purple:#a855f7;--text:#e5e7eb;--muted:#6b7280;--dim:#374151;
+  --CC:#3b82f6;--DC:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);font-family:'Barlow',sans-serif;color:var(--text);overflow-x:hidden}
+input,select,button{font-family:'Barlow',sans-serif}
+input::placeholder{color:var(--dim)}
+input:focus{outline:none;border-color:var(--amber)!important;box-shadow:0 0 0 3px #f59e0b18}
+.scr{display:none;min-height:100vh;flex-direction:column}
+.scr.on{display:flex}
+.hdr{background:#0a0e16;border-bottom:1px solid var(--bor);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;gap:10px}
+.hdr-logo{font-family:'Bebas Neue';font-size:22px;color:var(--amber);letter-spacing:3px;line-height:1}
+.hdr-sub{font-size:10px;color:var(--dim);letter-spacing:2px;margin-top:2px;text-transform:uppercase}
+.wrap{flex:1;padding:16px 20px;max-width:580px;margin:0 auto;width:100%}
+.btn{width:100%;padding:17px;border:none;border-radius:12px;font-size:16px;font-weight:900;cursor:pointer;letter-spacing:.5px;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97);opacity:.88}
+.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}
+.btn-amber{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a0a}
+.btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+.btn-ghost{background:var(--sur);color:var(--muted);border:1px solid var(--bor)}
+.btn-sm{padding:10px 16px;font-size:13px;width:auto;border-radius:10px}
+.field{margin-bottom:16px}
+.label{display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.input{width:100%;background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:15px 16px;color:var(--text);font-size:17px;transition:all .2s}
+.tipo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tipo-btn{padding:20px 10px;border:2px solid var(--bor);border-radius:12px;background:var(--sur2);color:var(--muted);font-size:15px;font-weight:900;cursor:pointer;text-align:center;transition:all .2s;letter-spacing:.5px;line-height:1.6}
+.tipo-btn.selC{border-color:var(--CC);background:#0a1f3d;color:var(--CC)}
+.tipo-btn.selD{border-color:var(--DC);background:#3b1a00;color:var(--DC)}
+.tabs{display:flex;background:var(--sur2);border-radius:10px;padding:4px;gap:4px;margin-bottom:18px;border:1px solid var(--bor)}
+.tab{flex:1;padding:11px 6px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s}
+.tab.onC{background:var(--CC);color:#fff}
+.tab.onD{background:var(--DC);color:#0a0a0a}
+.tab.onH{background:var(--purple);color:#fff}
+.tab.onG{background:var(--green);color:#fff}
+.dcard{border-radius:14px;padding:16px;margin-bottom:10px;border-left:5px solid var(--dim);animation:slin .3s ease}
+.dcard.ag{background:var(--sur);border:1px solid var(--bor);border-left-color:var(--dim)}
+.dcard.ch{background:#1a1200;border:1px solid #f59e0b44;border-left-color:var(--amber)}
+.dcard.pe{background:#0a1f3d;border:1px solid #3b82f644;border-left-color:var(--blue)}
+.dcard.fi{background:#09090f;border:1px solid #111;border-left-color:var(--green);opacity:.45}
+.ordem{font-family:'Bebas Neue';font-size:44px;line-height:1;min-width:80px;text-align:center;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.bC{background:#0a1f3d;color:var(--CC);border:1px solid #3b82f644}
+.bD{background:#3b1a00;color:var(--DC);border:1px solid #f59e0b44}
+.bag{background:#1a1a2e;color:var(--muted);border:1px solid var(--dim)}
+.bch{background:#3b1a00;color:var(--amber);border:1px solid #f59e0b44}
+.bpe{background:#0a1f3d;color:var(--blue);border:1px solid #3b82f644}
+.bfi{background:#052e16;color:var(--green);border:1px solid #22c55e44}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.stat-box{border-radius:12px;padding:14px 16px;border:1px solid var(--bor)}
+.stat-box.C{background:#080e1a;border-color:#3b82f633}
+.stat-box.D{background:#0e0900;border-color:#f59e0b33}
+.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.stat-tipo{font-family:'Bebas Neue';font-size:14px;letter-spacing:2px}
+.stat-nums{display:flex;gap:10px}
+.stat-item{text-align:center}
+.stat-n{font-family:'Bebas Neue';font-size:28px;line-height:1}
+.stat-l{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.overlay{display:none;position:fixed;inset:0;background:#00000099;z-index:100;align-items:center;justify-content:center;padding:16px}
+.overlay.on{display:flex}
+.modal{background:var(--sur);border:1px solid var(--bor);border-radius:16px;padding:24px;width:100%;max-width:420px}
+.modal-title{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;color:var(--amber);margin-bottom:16px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:200;padding:11px 22px;border-radius:12px;font-size:14px;font-weight:700;white-space:nowrap;pointer-events:none;box-shadow:0 8px 32px #00000055;opacity:0;transition:opacity .3s}
+.tok{background:#052e16;border:1px solid #16a34a;color:#86efac}
+.terr{background:#1f0a0a;border:1px solid #dc2626;color:#fca5a5}
+.twarn{background:#3b1a00;border:1px solid #d97706;color:#fcd34d}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--dim);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bor)}
+.empty{text-align:center;padding:50px 16px;color:var(--dim)}
+.empty-icon{font-size:44px;display:block;margin-bottom:10px}
+.empty-txt{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;color:var(--muted);margin-bottom:6px}
+.empty-sub{font-size:13px}
+.cd{font-family:'JetBrains Mono';font-size:13px;color:var(--amber);font-weight:700}
+.acoes{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.ibtn{border:none;cursor:pointer;border-radius:8px;font-family:'Barlow',sans-serif;font-weight:900;font-size:13px;padding:10px 14px;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.ibtn:active{transform:scale(.96)}
+.ibtn-g{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff}
+.ibtn-a{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a0a}
+.ibtn-r{background:var(--sur2);color:var(--red);border:1px solid #7f1d1d44}
+.ibtn-e{background:var(--sur2);color:var(--blue);border:1px solid #1e3a5f}
+.sel-st{background:var(--sur2);color:var(--text);border:1px solid var(--bor);border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;cursor:pointer;flex:1;min-width:130px}
+.pill-next{font-family:'Bebas Neue';font-size:10px;color:var(--green);background:#052e16;padding:2px 8px;border-radius:20px;letter-spacing:1px;border:1px solid #16a34a44;margin-left:6px;vertical-align:middle}
+.pill-cham{font-family:'Bebas Neue';font-size:10px;color:var(--amber);background:#3b1a00;padding:2px 8px;border-radius:20px;letter-spacing:1px;border:1px solid #f59e0b44;margin-left:6px;vertical-align:middle;animation:pulseA 1.5s infinite}
+.hist-dia{background:var(--sur);border:1px solid var(--bor);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.hist-hdr{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--sur2)}
+.hist-body{padding:0 16px;display:none;border-top:1px solid var(--bor)}
+.hist-body.open{display:block}
+.hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bor)}
+.hist-row:last-child{border-bottom:none}
+@keyframes slin{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulseA{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+<script>
+if("serviceWorker" in navigator) {
+  var swBlob = new Blob([`
+const CACHE = "patio-v1";
+const FILES = ["/"];
+self.addEventListener("install", e => {
+  self.skipWaiting();
+});
+self.addEventListener("fetch", e => {
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});
+`], {type:"text/javascript"});
+  var swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).then(function(reg) {
+    console.log("SW registrado");
+  }).catch(function(e) {
+    console.log("SW sem suporte neste contexto:", e.message);
+  });
+}
+</script>
+<link rel="manifest" href="data:application/manifest+json,{
+  &quot;name&quot;: &quot;Sistema de Pátio&quot;,
+  &quot;short_name&quot;: &quot;Pátio&quot;,
+  &quot;display&quot;: &quot;standalone&quot;,
+  &quot;background_color&quot;: &quot;#070a0f&quot;,
+  &quot;theme_color&quot;: &quot;#070a0f&quot;,
+  &quot;start_url&quot;: &quot;.&quot;,
+  &quot;icons&quot;: []
+}">
+</head>
+<body>
+
+<!-- HOME -->
+<div id="scr-home" class="scr on">
+  <div style="display:flex;flex-direction:column;justify-content:center;padding:40px 20px;min-height:100vh;max-width:500px;margin:0 auto;width:100%">
+    <div style="font-size:60px;text-align:center;margin-bottom:12px">🚛</div>
+    <div style="font-family:'Bebas Neue';font-size:44px;color:var(--amber);letter-spacing:4px;text-align:center;line-height:1;margin-bottom:4px">SISTEMA DE PÁTIO</div>
+    <div style="font-size:11px;color:var(--dim);text-align:center;letter-spacing:2px;margin-bottom:36px">SELECIONE O MODO DE ACESSO</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <button class="btn btn-green" onclick="go('scr-guarita')" style="padding:22px;font-size:19px">🏠 GUARITA — ENTRADA</button>
+      <button class="btn btn-blue"  onclick="go('scr-gestao')"  style="padding:22px;font-size:19px">📋 GERENCIAMENTO</button>
+    </div>
+    <div style="text-align:center;margin-top:28px">
+      <div class="cd" id="home-cd"></div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;letter-spacing:1px">FILA ZERA À MEIA-NOITE · HISTÓRICO GUARDADO</div>
+    </div>
+  </div>
+</div>
+
+<!-- GUARITA -->
+<div id="scr-guarita" class="scr">
+  <div class="hdr">
+    <div><div class="hdr-logo">🏠 GUARITA</div><div class="hdr-sub">ENTRADA DE VEÍCULOS</div></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="text-align:right">
+        <div style="font-size:9px;color:var(--dim);letter-spacing:1px">NA FILA</div>
+        <div style="font-family:'Bebas Neue';font-size:28px;line-height:1;color:var(--text)" id="g-total">0</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="go('scr-home')">← Início</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab onG" id="gt-cad" onclick="gTab('cad')">➕ Entrada</button>
+      <button class="tab"     id="gt-fc"  onclick="gTab('fc')">📦 Carga</button>
+      <button class="tab"     id="gt-fd"  onclick="gTab('fd')">📤 Descarga</button>
+    </div>
+
+    <!-- CADASTRO -->
+    <div id="gp-cad">
+      <div style="background:var(--sur);border:1px solid var(--bor);border-radius:14px;padding:20px" id="g-form">
+        <div class="field">
+          <label class="label">WhatsApp do Motorista (com DDD)</label>
+          <input class="input" id="g-tel" type="tel" placeholder="(11) 99999-9999" inputmode="numeric" autocomplete="off" style="font-size:20px;letter-spacing:2px">
+        </div>
+        <div class="field">
+          <label class="label">Tipo de Operação</label>
+          <div class="tipo-wrap">
+            <button class="tipo-btn selC" id="tipo-C" onclick="selTipo('C')">📦<br>CARGA</button>
+            <button class="tipo-btn"      id="tipo-D" onclick="selTipo('D')">📤<br>DESCARGA</button>
+          </div>
+        </div>
+        <button class="btn btn-green" onclick="cadastrar()" style="margin-top:4px;font-size:18px;padding:18px">✅ REGISTRAR ENTRADA</button>
+      </div>
+
+      <div style="display:none;text-align:center;padding:10px 0" id="g-ok">
+        <div style="font-size:52px;margin-bottom:10px">✅</div>
+        <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;color:var(--green);margin-bottom:8px">REGISTRADO!</div>
+        <div id="g-ok-badge" style="margin-bottom:8px"></div>
+        <div style="font-family:'Bebas Neue';font-size:90px;line-height:1;margin:8px 0" id="g-ok-num"></div>
+        <div style="font-size:13px;color:var(--dim);margin-bottom:20px">← anote na nota fiscal</div>
+        <div style="background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:14px;margin-bottom:20px">
+          <div style="font-size:13px;color:var(--muted)">📱 Motorista será chamado pelo WhatsApp quando chegar sua vez</div>
+        </div>
+        <button class="btn btn-amber" onclick="novoRegistro()" style="font-size:17px;padding:18px">➕ PRÓXIMO VEÍCULO</button>
+      </div>
+    </div>
+
+    <div id="gp-fc" style="display:none"><div id="g-lista-C"></div></div>
+    <div id="gp-fd" style="display:none"><div id="g-lista-D"></div></div>
+  </div>
+</div>
+
+<!-- GESTÃO -->
+<div id="scr-gestao" class="scr">
+  <div class="hdr">
+    <div><div class="hdr-logo">📋 GERENCIAMENTO</div><div class="hdr-sub">CONTROLE DA FILA</div></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="text-align:right">
+        <div style="font-size:9px;color:var(--dim);letter-spacing:1px">RESET</div>
+        <div class="cd" id="gest-cd"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="go('scr-home')">← Início</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat-box C">
+        <div class="stat-header">
+          <div class="stat-tipo" style="color:var(--CC)">📦 CARGA</div>
+          <div style="font-family:'Bebas Neue';font-size:28px;color:var(--CC)" id="sc-total">0</div>
+        </div>
+        <div class="stat-nums">
+          <div class="stat-item"><div class="stat-n" id="sc-ag" style="color:var(--muted)">0</div><div class="stat-l">Aguard.</div></div>
+          <div class="stat-item"><div class="stat-n" id="sc-ch" style="color:var(--amber)">0</div><div class="stat-l">Chamado</div></div>
+          <div class="stat-item"><div class="stat-n" id="sc-pe" style="color:var(--blue)">0</div><div class="stat-l">Balança</div></div>
+          <div class="stat-item"><div class="stat-n" id="sc-fi" style="color:var(--green)">0</div><div class="stat-l">Saiu</div></div>
+        </div>
+      </div>
+      <div class="stat-box D">
+        <div class="stat-header">
+          <div class="stat-tipo" style="color:var(--DC)">📤 DESCARGA</div>
+          <div style="font-family:'Bebas Neue';font-size:28px;color:var(--DC)" id="sd-total">0</div>
+        </div>
+        <div class="stat-nums">
+          <div class="stat-item"><div class="stat-n" id="sd-ag" style="color:var(--muted)">0</div><div class="stat-l">Aguard.</div></div>
+          <div class="stat-item"><div class="stat-n" id="sd-ch" style="color:var(--amber)">0</div><div class="stat-l">Chamado</div></div>
+          <div class="stat-item"><div class="stat-n" id="sd-pe" style="color:var(--blue)">0</div><div class="stat-l">Balança</div></div>
+          <div class="stat-item"><div class="stat-n" id="sd-fi" style="color:var(--green)">0</div><div class="stat-l">Saiu</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab onC" id="gt2-C" onclick="gestTab('C')">📦 Carga</button>
+      <button class="tab"     id="gt2-D" onclick="gestTab('D')">📤 Descarga</button>
+      <button class="tab"     id="gt2-H" onclick="gestTab('H')">📊 Histórico</button>
+    </div>
+
+    <div id="gest-inner"></div>
+
+    <div id="gest-footer" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bor);justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="abrirReset()" style="color:var(--red);border-color:#7f1d1d44;width:auto">🔄 Zerar Fila do Dia</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">✏️ EDITAR REGISTRO</div>
+    <input type="hidden" id="edit-id">
+    <input type="hidden" id="edit-tipo-old">
+    <div class="field">
+      <label class="label">WhatsApp (com DDD)</label>
+      <input class="input" id="edit-tel" type="tel" placeholder="(11) 99999-9999" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label class="label">Tipo</label>
+      <div class="tipo-wrap">
+        <button class="tipo-btn" id="etipo-C" onclick="selEditTipo('C')">📦 CARGA</button>
+        <button class="tipo-btn" id="etipo-D" onclick="selEditTipo('D')">📤 DESCARGA</button>
+      </div>
+    </div>
+    <input type="hidden" id="edit-tipo-new">
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-amber" onclick="salvarEdit()">💾 SALVAR</button>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-edit')" style="flex:0 0 auto;padding:14px 16px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESET -->
+<div class="overlay" id="modal-reset">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:44px;margin-bottom:10px">⚠️</div>
+    <div class="modal-title" style="color:var(--red)">ZERAR FILA DO DIA?</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:22px">A fila ativa será zerada.<br>O histórico de hoje será mantido.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-red" onclick="zerarFila()">✅ SIM, ZERAR</button>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-reset')" style="flex:0 0 auto;padding:14px 16px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SAIU -->
+<div class="overlay" id="modal-saiu">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:44px;margin-bottom:10px">🚛</div>
+    <div class="modal-title" style="color:var(--green)">VEÍCULO SAIU?</div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:4px" id="ms-num"></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:22px" id="ms-tel"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-green" onclick="confirmarSaiu()">✅ SIM, SAIU</button>
+      <button class="btn btn-ghost btn-sm" onclick="fecharModal('modal-saiu')" style="flex:0 0 auto;padding:14px 16px">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'patio_v7';
+function hoje(){ return new Date().toDateString(); }
+
+function getDados(){
+  try{
+    const r = localStorage.getItem(KEY);
+    if(!r) return {filaC:[],filaD:[],seqC:0,seqD:0,ultimoDia:hoje(),historico:{}};
+    return JSON.parse(r);
+  } catch(e) {
+    return {filaC:[],filaD:[],seqC:0,seqD:0,ultimoDia:hoje(),historico:{}};
+  }
+}
+
+function salvar(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
+
+// Verifica se virou o dia
+function verificarDia(){
+  const d = getDados();
+  if(!d.ultimoDia) d.ultimoDia = hoje();
+  if(d.ultimoDia !== hoje()){
+    if(!d.historico) d.historico = {};
+    d.historico[d.ultimoDia] = { C: d.filaC||[], D: d.filaD||[] };
+    d.filaC = []; d.filaD = [];
+    d.seqC  = 0;  d.seqD  = 0;
+    d.ultimoDia = hoje();
+    salvar(d);
+    toast('Nova fila iniciada!', 'ok');
+  }
+}
+
+// Navegação
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+  if(id==='scr-gestao'){ gestTab('C'); }
+  if(id==='scr-guarita'){ atualizarTotais(); gTab('cad'); }
+}
+
+// Tipo (guarita)
+let tipoAtual = 'C';
+function selTipo(t){
+  tipoAtual = t;
+  document.getElementById('tipo-C').className = 'tipo-btn' + (t==='C' ? ' selC' : '');
+  document.getElementById('tipo-D').className = 'tipo-btn' + (t==='D' ? ' selD' : '');
+}
+
+// Tipo (editar)
+function selEditTipo(t){
+  document.getElementById('edit-tipo-new').value = t;
+  document.getElementById('etipo-C').className = 'tipo-btn' + (t==='C' ? ' selC' : '');
+  document.getElementById('etipo-D').className = 'tipo-btn' + (t==='D' ? ' selD' : '');
+}
+
+// Tabs guarita
+function gTab(t){
+  document.getElementById('gp-cad').style.display = t==='cad' ? 'block' : 'none';
+  document.getElementById('gp-fc').style.display  = t==='fc'  ? 'block' : 'none';
+  document.getElementById('gp-fd').style.display  = t==='fd'  ? 'block' : 'none';
+  document.getElementById('gt-cad').className = 'tab' + (t==='cad' ? ' onG' : '');
+  document.getElementById('gt-fc').className  = 'tab' + (t==='fc'  ? ' onC' : '');
+  document.getElementById('gt-fd').className  = 'tab' + (t==='fd'  ? ' onD' : '');
+  if(t==='fc') renderFilaGuarita('C');
+  if(t==='fd') renderFilaGuarita('D');
+}
+
+function renderFilaGuarita(tipo){
+  const d    = getDados();
+  const fila = (tipo==='C' ? d.filaC : d.filaD).filter(v=>v.status!=='finalizado');
+  const wrap = document.getElementById('g-lista-' + tipo);
+  if(!fila.length){
+    wrap.innerHTML = '<div class="empty"><span class="empty-icon">'+(tipo==='C'?'📦':'📤')+'</span><div class="empty-txt">FILA VAZIA</div><div class="empty-sub">Nenhum veículo aguardando</div></div>';
+    return;
+  }
+  wrap.innerHTML = fila.map(function(v,i){
+    return '<div class="dcard '+stCl(v.status)+'">'+
+      '<div style="display:flex;align-items:center;gap:12px">'+
+        '<div class="ordem" style="color:'+(tipo==='C'?'var(--CC)':'var(--DC)')+'">#'+tipo+v.seq+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-family:\'JetBrains Mono\';font-size:15px;font-weight:700">'+fmtTel(v.tel)+'</div>'+
+          '<div style="font-size:12px;color:var(--dim);margin-top:3px">⏱ '+v.hora+'</div>'+
+        '</div>'+
+        '<span class="badge '+stBadge(v.status)+'">'+stLabel(v.status)+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// Cadastrar
+function cadastrar(){
+  var tel = document.getElementById('g-tel').value.replace(/\D/g,'');
+  if(tel.length < 10){ toast('WhatsApp inválido — inclua o DDD', 'err'); return; }
+
+  var d    = getDados();
+  var fila = tipoAtual==='C' ? d.filaC : d.filaD;
+
+  // Verifica duplicata ativa
+  var existe = fila.find(function(v){ return v.tel===tel && v.status!=='finalizado'; });
+  if(existe){ toast('Já está na fila — #'+tipoAtual+existe.seq, 'warn'); return; }
+
+  // Próximo número
+  if(tipoAtual==='C'){ d.seqC = (d.seqC||0) + 1; } else { d.seqD = (d.seqD||0) + 1; }
+  var seq = tipoAtual==='C' ? d.seqC : d.seqD;
+
+  var entry = {
+    id:     Date.now(),
+    tel:    tel,
+    seq:    seq,
+    tipo:   tipoAtual,
+    hora:   new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    status: 'aguardando'
+  };
+
+  if(tipoAtual==='C') d.filaC.push(entry); else d.filaD.push(entry);
+  salvar(d);
+
+  // Confirmação
+  var numEl = document.getElementById('g-ok-num');
+  numEl.textContent = '#' + tipoAtual + seq;
+  numEl.style.color = tipoAtual==='C' ? 'var(--CC)' : 'var(--DC)';
+  document.getElementById('g-ok-badge').innerHTML = tipoAtual==='C'
+    ? '<span class="badge bC">📦 Fila de Carga</span>'
+    : '<span class="badge bD">📤 Fila de Descarga</span>';
+  document.getElementById('g-form').style.display = 'none';
+  document.getElementById('g-ok').style.display   = 'block';
+  atualizarTotais();
+  toast('#'+tipoAtual+seq+' registrado!', 'ok');
+}
+
+function novoRegistro(){
+  document.getElementById('g-tel').value           = '';
+  document.getElementById('g-form').style.display  = 'block';
+  document.getElementById('g-ok').style.display    = 'none';
+  document.getElementById('g-tel').focus();
+}
+
+// Tabs gestão
+var gestAtual = 'C';
+function gestTab(t){
+  gestAtual = t;
+  document.getElementById('gt2-C').className = 'tab' + (t==='C' ? ' onC' : '');
+  document.getElementById('gt2-D').className = 'tab' + (t==='D' ? ' onD' : '');
+  document.getElementById('gt2-H').className = 'tab' + (t==='H' ? ' onH' : '');
+  if(t==='H') renderHistorico(); else renderGestao(t);
+}
+
+function renderGestao(tipo){
+  var d      = getDados();
+  var fila   = tipo==='C' ? d.filaC : d.filaD;
+  var ativos = fila.filter(function(v){ return v.status!=='finalizado'; });
+  var finais = fila.filter(function(v){ return v.status==='finalizado'; });
+  var html   = '';
+
+  if(!ativos.length && !finais.length){
+    html = '<div class="empty"><span class="empty-icon">'+(tipo==='C'?'📦':'📤')+'</span><div class="empty-txt">FILA VAZIA</div><div class="empty-sub">Nenhum veículo cadastrado</div></div>';
+  } else {
+    ativos.forEach(function(v,i){
+      var isNext = i===0 && v.status==='aguardando';
+      html +=
+        '<div class="dcard '+stCl(v.status)+'">' +
+          '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+            '<div class="ordem" style="color:'+(tipo==='C'?'var(--CC)':'var(--DC)')+'">#'+tipo+v.seq+'</div>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-family:\'JetBrains Mono\';font-size:16px;font-weight:700;'+(v.status==='chamado'?'color:var(--amber)':'')+'">' +
+                fmtTel(v.tel) +
+                (isNext ? '<span class="pill-next">PRÓXIMO</span>' : '') +
+                (v.status==='chamado' ? '<span class="pill-cham">CHAMADO</span>' : '') +
+              '</div>' +
+              '<div style="font-size:12px;color:var(--dim);margin-top:3px">⏱ Entrada: '+v.hora+'</div>' +
+            '</div>' +
+            '<span class="badge '+stBadge(v.status)+'">'+stLabel(v.status)+'</span>' +
+          '</div>' +
+          '<div class="acoes">' +
+            '<button class="ibtn ibtn-g" onclick="chamar(\''+v.id+'\',\''+tipo+'\')">📞 Chamar</button>' +
+            '<select class="sel-st" onchange="mudarStatus(\''+v.id+'\',\''+tipo+'\',this.value)">' +
+              '<option value="aguardando"'+(v.status==='aguardando'?' selected':'')+'>⏳ Aguardando</option>' +
+              '<option value="chamado"'+(v.status==='chamado'?' selected':'')+'>📞 Chamado</option>' +
+              '<option value="pesando"'+(v.status==='pesando'?' selected':'')+'>⚖️ Na Balança</option>' +
+            '</select>' +
+            '<button class="ibtn" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff" onclick="abrirSaiu(\''+v.id+'\',\''+tipo+'\')">🚛 Saiu</button>' +
+            '<button class="ibtn ibtn-e" onclick="abrirEdit(\''+v.id+'\',\''+tipo+'\')">✏️</button>' +
+            '<button class="ibtn ibtn-r" onclick="remover(\''+v.id+'\',\''+tipo+'\')">✕</button>' +
+          '</div>' +
+        '</div>';
+    });
+
+    if(finais.length){
+      html += '<div class="divider">Finalizados ('+finais.length+')</div>';
+      finais.forEach(function(v){
+        html +=
+          '<div class="dcard fi">' +
+            '<div style="display:flex;align-items:center;gap:12px">' +
+              '<div style="font-family:\'Bebas Neue\';font-size:28px;color:var(--dim);min-width:80px;text-align:center">#'+tipo+v.seq+'</div>' +
+              '<div style="flex:1">' +
+                '<div style="font-family:\'JetBrains Mono\';font-size:14px;font-weight:700;color:var(--muted)">'+fmtTel(v.tel)+'</div>' +
+                '<div style="font-size:11px;color:var(--dim)">'+v.hora+' · ✅ Saiu</div>' +
+              '</div>' +
+              '<button class="ibtn ibtn-r" onclick="remover(\''+v.id+'\',\''+tipo+'\')">✕</button>' +
+            '</div>' +
+          '</div>';
+      });
+    }
+  }
+
+  document.getElementById('gest-inner').innerHTML = html;
+  atualizarStats();
+  var d2 = getDados();
+  var temAtivos = d2.filaC.concat(d2.filaD).some(function(v){ return v.status!=='finalizado'; });
+  document.getElementById('gest-footer').style.display = temAtivos ? 'flex' : 'none';
+}
+
+// Chamar
+function chamar(id, tipo){
+  var d    = getDados();
+  var fila = tipo==='C' ? d.filaC : d.filaD;
+  var v    = fila.find(function(x){ return String(x.id)===String(id); });
+  if(!v) return;
+  var tel = '55' + v.tel;
+  var op  = tipo==='C' ? 'CARGA' : 'DESCARGA';
+  var msg = encodeURIComponent(
+    '🚛 *PÁTIO — CHAMADA*\n\n' +
+    'Você é o *#' + tipo + v.seq + '* da fila de *' + op + '*.\n\n' +
+    'Favor comparecer à *BALANÇA* para pesagem imediatamente.\n\n' +
+    '_Sistema de Pátio_'
+  );
+  window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
+  mudarStatus(id, tipo, 'chamado');
+  toast('Chamando #' + tipo + v.seq + '...', 'ok');
+}
+
+// Status
+function mudarStatus(id, tipo, status){
+  var d    = getDados();
+  var fila = tipo==='C' ? d.filaC : d.filaD;
+  var v    = fila.find(function(x){ return String(x.id)===String(id); });
+  if(!v) return;
+  v.status = status;
+  salvar(d);
+  renderGestao(gestAtual);
+  atualizarTotais();
+}
+
+// Saiu
+var _saiuId='', _saiuTipo='';
+function abrirSaiu(id, tipo){
+  var d    = getDados();
+  var fila = tipo==='C' ? d.filaC : d.filaD;
+  var v    = fila.find(function(x){ return String(x.id)===String(id); });
+  if(!v) return;
+  _saiuId = id; _saiuTipo = tipo;
+  document.getElementById('ms-num').innerHTML = '<span style="font-family:\'Bebas Neue\';font-size:40px;color:'+(tipo==='C'?'var(--CC)':'var(--DC)')+'"">#'+tipo+v.seq+'</span>';
+  document.getElementById('ms-tel').textContent = fmtTel(v.tel);
+  document.getElementById('modal-saiu').classList.add('on');
+}
+function confirmarSaiu(){
+  mudarStatus(_saiuId, _saiuTipo, 'finalizado');
+  fecharModal('modal-saiu');
+  toast('Veículo finalizado! 🚛', 'ok');
+}
+
+// Remover
+function remover(id, tipo){
+  var d = getDados();
+  if(tipo==='C') d.filaC = d.filaC.filter(function(v){ return String(v.id)!==String(id); });
+  else d.filaD = d.filaD.filter(function(v){ return String(v.id)!==String(id); });
+  salvar(d);
+  renderGestao(gestAtual);
+  atualizarTotais();
+  toast('Removido', 'warn');
+}
+
+// Editar
+function abrirEdit(id, tipo){
+  var d    = getDados();
+  var fila = tipo==='C' ? d.filaC : d.filaD;
+  var v    = fila.find(function(x){ return String(x.id)===String(id); });
+  if(!v) return;
+  document.getElementById('edit-id').value       = id;
+  document.getElementById('edit-tipo-old').value  = tipo;
+  document.getElementById('edit-tel').value       = fmtTel(v.tel);
+  selEditTipo(tipo);
+  document.getElementById('modal-edit').classList.add('on');
+}
+
+function salvarEdit(){
+  var id       = document.getElementById('edit-id').value;
+  var tipoOld  = document.getElementById('edit-tipo-old').value;
+  var tipoNew  = document.getElementById('edit-tipo-new').value;
+  var tel      = document.getElementById('edit-tel').value.replace(/\D/g,'');
+  if(tel.length < 10){ toast('WhatsApp inválido', 'err'); return; }
+  if(!tipoNew){ toast('Selecione o tipo', 'err'); return; }
+
+  var d        = getDados();
+  var filaOld  = tipoOld==='C' ? d.filaC : d.filaD;
+  var idx      = filaOld.findIndex(function(v){ return String(v.id)===String(id); });
+  if(idx===-1) return;
+
+  var entry    = filaOld[idx];
+  entry.tel    = tel;
+
+  if(tipoNew !== tipoOld){
+    filaOld.splice(idx, 1);
+    if(tipoNew==='C'){ d.seqC++; entry.seq=d.seqC; entry.tipo='C'; d.filaC.push(entry); }
+    else { d.seqD++; entry.seq=d.seqD; entry.tipo='D'; d.filaD.push(entry); }
+    toast('Movido para fila de '+(tipoNew==='C'?'Carga':'Descarga'), 'ok');
+  } else {
+    toast('WhatsApp atualizado!', 'ok');
+  }
+
+  salvar(d);
+  fecharModal('modal-edit');
+  renderGestao(gestAtual);
+  atualizarTotais();
+}
+
+// Histórico
+function renderHistorico(){
+  var d    = getDados();
+  var hist = d.historico || {};
+  var dias = Object.keys(hist).sort(function(a,b){ return new Date(b)-new Date(a); });
+
+  if(!dias.length){
+    document.getElementById('gest-inner').innerHTML = '<div class="empty"><span class="empty-icon">📊</span><div class="empty-txt">SEM HISTÓRICO</div><div class="empty-sub">Aparece aqui a partir do segundo dia de uso</div></div>';
+    return;
+  }
+
+  var html = '';
+  dias.forEach(function(dia){
+    var filaC  = hist[dia].C || [];
+    var filaD  = hist[dia].D || [];
+    var total  = filaC.length + filaD.length;
+    var dtLbl  = new Date(dia).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+    var dayId  = 'hd' + dia.replace(/ /g,'_');
+    var todos  = filaC.map(function(v){ return Object.assign({},v,{tipo:'C'}); })
+                .concat(filaD.map(function(v){ return Object.assign({},v,{tipo:'D'}); }))
+                .sort(function(a,b){ return a.id-b.id; });
+
+    html +=
+      '<div class="hist-dia">' +
+        '<div class="hist-hdr" onclick="toggleHist(\''+dayId+'\')">' +
+          '<div>' +
+            '<div style="font-weight:800;font-size:14px;text-transform:capitalize">'+dtLbl+'</div>' +
+            '<div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">' +
+              '<span class="badge bC" style="font-size:10px">📦 '+filaC.length+' carga</span>' +
+              '<span class="badge bD" style="font-size:10px">📤 '+filaD.length+' descarga</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align:right">' +
+            '<div style="font-family:\'Bebas Neue\';font-size:32px;color:var(--amber)">'+total+'</div>' +
+            '<div style="font-size:9px;color:var(--dim);letter-spacing:1px">VEÍCULOS</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hist-body" id="'+dayId+'">' +
+          todos.map(function(v){
+            return '<div class="hist-row">' +
+              '<div style="font-family:\'Bebas Neue\';font-size:22px;color:'+(v.tipo==='C'?'var(--CC)':'var(--DC)')+';min-width:64px">#'+v.tipo+v.seq+'</div>' +
+              '<div style="flex:1;font-family:\'JetBrains Mono\';font-size:13px">'+fmtTel(v.tel)+'</div>' +
+              '<div style="text-align:right">' +
+                '<span class="badge '+stBadge(v.status)+'" style="font-size:10px">'+stLabel(v.status)+'</span>' +
+                '<div style="font-size:10px;color:var(--dim);margin-top:3px">'+v.hora+'</div>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+      '</div>';
+  });
+  document.getElementById('gest-inner').innerHTML = html;
+}
+
+function toggleHist(id){ document.getElementById(id).classList.toggle('open'); }
+
+// Reset
+function abrirReset(){ document.getElementById('modal-reset').classList.add('on'); }
+function zerarFila(){
+  var d = getDados();
+  if(!d.historico) d.historico = {};
+  d.historico[hoje()] = { C: d.filaC, D: d.filaD };
+  d.filaC=[]; d.filaD=[]; d.seqC=0; d.seqD=0;
+  salvar(d);
+  fecharModal('modal-reset');
+  renderGestao(gestAtual);
+  atualizarTotais();
+  toast('Fila zerada! Histórico guardado.', 'warn');
+}
+
+// Modal
+function fecharModal(id){ document.getElementById(id).classList.remove('on'); }
+document.querySelectorAll('.overlay').forEach(function(o){
+  o.addEventListener('click',function(e){ if(e.target===o) o.classList.remove('on'); });
+});
+
+// Stats
+function atualizarStats(){
+  var d = getDados();
+  ['C','D'].forEach(function(t){
+    var fila = t==='C' ? d.filaC : d.filaD;
+    var p = t==='C' ? 'sc' : 'sd';
+    document.getElementById(p+'-total').textContent = fila.length;
+    document.getElementById(p+'-ag').textContent = fila.filter(function(v){ return v.status==='aguardando'; }).length;
+    document.getElementById(p+'-ch').textContent = fila.filter(function(v){ return v.status==='chamado'; }).length;
+    document.getElementById(p+'-pe').textContent = fila.filter(function(v){ return v.status==='pesando'; }).length;
+    document.getElementById(p+'-fi').textContent = fila.filter(function(v){ return v.status==='finalizado'; }).length;
+  });
+}
+
+function atualizarTotais(){
+  var d = getDados();
+  var n = d.filaC.filter(function(v){ return v.status!=='finalizado'; }).length +
+          d.filaD.filter(function(v){ return v.status!=='finalizado'; }).length;
+  document.getElementById('g-total').textContent = n;
+}
+
+// Countdown
+function countdown(){
+  var now=new Date(), mdn=new Date();
+  mdn.setHours(24,0,0,0);
+  var diff=mdn-now;
+  var h=String(Math.floor(diff/3600000)).padStart(2,'0');
+  var m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  var s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  var txt=h+':'+m+':'+s;
+  document.getElementById('home-cd').textContent  = txt;
+  document.getElementById('gest-cd').textContent  = txt;
+}
+setInterval(countdown,1000);
+countdown();
+setInterval(verificarDia, 30000);
+
+// Helpers
+function fmtTel(t){
+  t = (t||'').replace(/\D/g,'');
+  if(t.length===11) return '('+t.slice(0,2)+') '+t.slice(2,7)+'-'+t.slice(7);
+  if(t.length===10) return '('+t.slice(0,2)+') '+t.slice(2,6)+'-'+t.slice(6);
+  return t;
+}
+function stCl(s){ return {aguardando:'ag',chamado:'ch',pesando:'pe',finalizado:'fi'}[s]||'ag'; }
+function stBadge(s){ return {aguardando:'bag',chamado:'bch',pesando:'bpe',finalizado:'bfi'}[s]||'bag'; }
+function stLabel(s){ return {aguardando:'⏳ Aguardando',chamado:'📞 Chamado',pesando:'⚖️ Balança',finalizado:'✅ Saiu'}[s]||s; }
+
+var toastT;
+function toast(msg, tipo){
+  var el = document.getElementById('toast');
+  el.className = 'toast ' + (tipo==='ok'?'tok':tipo==='err'?'terr':'twarn');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ el.style.opacity='0'; }, 2800);
+}
+
+// Init
+verificarDia();
+atualizarTotais();
+</script>
+</body>
+</html>
